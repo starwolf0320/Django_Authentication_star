@@ -1,0 +1,38 @@
+name: "Test and Release Django Project"
+
+on:
+  push:
+    branches:
+      - assignment-1-tests
+
+jobs:
+
+  build:
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DEBUG: False
+      DB_NAME: 123
+      DB_USER: 123
+      DB_PASSWORD: 123
+      DB_HOST: 123
+      DB_PORT: 123
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: "Run code analysis"
+        run: |
+          git ls-files | grep -v 'migrations' | grep -v 'settings.py' | grep -v 'manage.py' | grep -E '.py$' | xargs pylint -E --load-plugins=pylint_django
+      - name: "Run tests"
+        run: |
+          python manage.py test
+      - name: "Run security checks"
+        run: |
+          python manage.py check --deploy --fail-level ERROR
